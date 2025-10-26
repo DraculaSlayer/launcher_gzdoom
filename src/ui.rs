@@ -8,10 +8,11 @@ use std::io::Result;
 use ratatui::widgets::StatefulWidget;
 
 pub struct App {
-    app_state: AppState
+    app_state: AppState,
+    items: Vec<String>
 }
 
-pub struct AppState {
+struct AppState {
     direction: ListState
 }
 
@@ -20,7 +21,8 @@ impl App {
         let gg = AppState{direction: ListState::default()};
         let mut terminal = ratatui::init();
         let mut result = Self {
-            app_state: gg
+            app_state: gg,
+            items: Vec::new()
         };
         result.run(&mut terminal);
         ratatui::restore();
@@ -39,15 +41,16 @@ impl App {
 
     fn draw(&mut self, frame: &mut Frame) {
         use Constraint::{Fill, Length, Min};
+        
+        self.items = vec!["Item 1".to_string(), "Item 2".to_string(), "Item 3".to_string()];
+        
+        //let vertical = Layout::vertical([Fill(1)]);
+        //let [borde] = vertical.margin(3).areas(frame.area());
 
-//        let vertical = Layout::vertical([Fill(1)]);
-//        let [borde] = vertical.margin(3).areas(frame.area());
+        //frame.render_widget(Block::bordered().title(items[self.holis]), borde);
 
-//        frame.render_widget(Block::bordered().title("gg"), borde);
 
-        let items = ["Item 1", "Item 2", "Item 3"];
-
-        let list = List::new(items)
+        let list = List::new(self.items.clone())
             .block(Block::bordered().title("List"))
             .style(Style::new().white())
             .highlight_style(Style::new().italic())
@@ -67,6 +70,7 @@ impl App {
                 KeyCode::Char('q') => return Ok(true),
                 KeyCode::Up => self.select_next(),
                 KeyCode::Down => self.select_previous(),
+                KeyCode::Enter => self.selected(),
                 // handle: other key events
                 _ => {}
             },
@@ -82,5 +86,11 @@ impl App {
     
     fn select_previous(&mut self) {
         self.app_state.direction.select_previous();
+    }
+    fn selected(&mut self) {
+
+        if let Some(select) = self.app_state.direction.selected() {
+            println!("{}", self.items[select]);
+        }
     }
 }
