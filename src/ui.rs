@@ -1,15 +1,20 @@
 use crossterm::event::{self, Event, KeyCode, KeyEvent, KeyEventKind};
+use color_eyre::Result as OtherResult;
 use ratatui::{text::Text, 
-    Frame, 
-    widgets::{Paragraph, Block, List, ListDirection, ListItem, ListState},
+    Frame,
+    symbols,
+    widgets::{Paragraph, Block, Tabs, List, ListDirection, ListItem, ListState},
     layout::{Constraint, Layout, Rect, Margin},
     style::{Style, Stylize}};
 use std::io::Result;
 use ratatui::widgets::StatefulWidget;
+use ratatui::prelude::Widget;
 
 pub struct App {
     app_state: AppState,
-    items: Vec<String>
+    items: Vec<String>,
+    tabs: Vec<String>,
+    tabs_index: usize
 }
 
 struct AppState {
@@ -19,10 +24,13 @@ struct AppState {
 impl App {
     pub fn new() -> Self {
         let gg = AppState{direction: ListState::default()};
+        color_eyre::install().expect("FALLO");
         let mut terminal = ratatui::init();
         let mut result = Self {
             app_state: gg,
-            items: Vec::new()
+            items: Vec::new(),
+            tabs: Vec::new(),
+            tabs_index: 0
         };
         result.run(&mut terminal);
         ratatui::restore();
@@ -43,7 +51,8 @@ impl App {
         use Constraint::{Fill, Length, Min};
         
         self.items = vec!["Item 1".to_string(), "Item 2".to_string(), "Item 3".to_string()];
-        
+        self.tabs = vec!["Tabs1".to_string(), "Tabs2".to_string(), "Tabs3".to_string()];
+
         //let vertical = Layout::vertical([Fill(1)]);
         //let [borde] = vertical.margin(3).areas(frame.area());
 
@@ -58,9 +67,21 @@ impl App {
             .repeat_highlight_symbol(true)
             .direction(ListDirection::BottomToTop);
 
-        frame.render_stateful_widget(list, frame.area().inner(Margin { vertical: 2, horizontal: 2}), &mut self.app_state.direction);
+        frame.render_stateful_widget(list, 
+            frame.area().inner(Margin { vertical: 2, horizontal: 2}),
+            &mut self.app_state.direction);
 
-//        StatefulWidget::render(list, frame.area(), frame.buffer_mut(), &mut self.app_state.direction);
+        let index = self.tabs_index as usize;
+
+        let tabs = Tabs::new(self.tabs.clone())
+                    .block(Block::bordered())
+                    .style(Style::default().white())
+                    .highlight_style(Style::default().yellow())
+                    .select(index)
+                    .divider(symbols::DOT)
+                    .padding("->", "<-")
+                    .render(frame.area(), frame.buffer_mut());
+
 
     }
 
@@ -71,6 +92,8 @@ impl App {
                 KeyCode::Up => self.select_next(),
                 KeyCode::Down => self.select_previous(),
                 KeyCode::Enter => self.selected(),
+                KeyCode::Char('h') => self.select_next_tabs(),
+                KeyCode::Char('j') => self.select_previous_tabs(),
                 // handle: other key events
                 _ => {}
             },
@@ -91,6 +114,16 @@ impl App {
 
         if let Some(select) = self.app_state.direction.selected() {
             println!("{}", self.items[select]);
+        }
+    }
+    fn select_next_tabs(&mut self) {
+        if self.tabs_index < (self.tabs.len() -1) {
+            self.tabs_index += 1;
+        }
+    }
+    fn select_previous_tabs(&mut self) {
+        if self.tabs_index > 0 {
+            self.tabs_index -= 1;
         }
     }
 }
