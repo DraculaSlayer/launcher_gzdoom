@@ -38,7 +38,7 @@ impl App {
     }
 
     fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> Result<()> {
-        //Ciclo principal
+        //Main loop
         loop {
             terminal.draw(|frame| self.draw(frame))?;
             if self.handle_events()? {
@@ -53,35 +53,11 @@ impl App {
         self.items = vec!["Item 1".to_string(), "Item 2".to_string(), "Item 3".to_string()];
         self.tabs = vec!["Tabs1".to_string(), "Tabs2".to_string(), "Tabs3".to_string()];
 
-        //let vertical = Layout::vertical([Fill(1)]);
-        //let [borde] = vertical.margin(3).areas(frame.area());
+        //Draw the list section
+        self.draw_list(frame);
 
-        //frame.render_widget(Block::bordered().title(items[self.holis]), borde);
-
-
-        let list = List::new(self.items.clone())
-            .block(Block::bordered().title("List"))
-            .style(Style::new().white())
-            .highlight_style(Style::new().italic())
-            .highlight_symbol(">>")
-            .repeat_highlight_symbol(true)
-            .direction(ListDirection::BottomToTop);
-
-        frame.render_stateful_widget(list, 
-            frame.area().inner(Margin { vertical: 2, horizontal: 2}),
-            &mut self.app_state.direction);
-
-        let index = self.tabs_index as usize;
-
-        let tabs = Tabs::new(self.tabs.clone())
-                    .block(Block::bordered())
-                    .style(Style::default().white())
-                    .highlight_style(Style::default().yellow())
-                    .select(index)
-                    .divider(symbols::DOT)
-                    .padding("->", "<-")
-                    .render(frame.area(), frame.buffer_mut());
-
+        //Draw the tab section
+        self.draw_tabs(frame);
 
     }
 
@@ -125,5 +101,33 @@ impl App {
         if self.tabs_index > 0 {
             self.tabs_index -= 1;
         }
+    }
+
+    fn draw_tabs(&mut self, frame: &mut Frame) {
+        let index = self.tabs_index as usize;
+
+        let tabs = Tabs::new(self.tabs.clone())
+                    .block(Block::bordered())
+                    .style(Style::default().white())
+                    .highlight_style(Style::default().yellow())
+                    .select(index)
+                    .divider(symbols::DOT)
+                    .padding("->", "<-")
+                    .render(frame.area(), frame.buffer_mut());
+
+    }
+
+    fn draw_list(&mut self, frame: &mut Frame) {
+        let list = List::new(self.items.clone())
+            .block(Block::bordered().title("List"))
+            .style(Style::new().white())
+            .highlight_style(Style::new().italic())
+            .highlight_symbol(">>")
+            .repeat_highlight_symbol(true)
+            .direction(ListDirection::BottomToTop);
+            
+        frame.render_stateful_widget(list,
+                                    frame.area().inner(Margin { vertical: 2, horizontal: 2}),
+                                    &mut self.app_state.direction);
     }
 }
