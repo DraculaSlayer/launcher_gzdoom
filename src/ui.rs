@@ -40,14 +40,14 @@ impl App {
     fn run(&mut self, terminal: &mut ratatui::DefaultTerminal) -> Result<()> {
         //Main loop
         loop {
-            terminal.draw(|frame| self.draw(frame))?;
+            terminal.draw(|frame| self.draw_main(frame))?;
             if self.handle_events()? {
                 break Ok(());
             }
         }
     }
 
-    fn draw(&mut self, frame: &mut Frame) {
+    fn draw_main(&mut self, frame: &mut Frame) {
         use Constraint::{Fill, Length, Min};
         
         self.items = vec!["Item 1".to_string(), "Item 2".to_string(), "Item 3".to_string()];
