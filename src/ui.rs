@@ -9,6 +9,7 @@ use ratatui::{text::Text,
 use std::io::Result;
 use ratatui::widgets::StatefulWidget;
 use ratatui::prelude::Widget;
+use crate::scan_wad;
 
 pub struct App {
     app_state: AppState,
@@ -23,17 +24,24 @@ struct AppState {
 
 impl App {
     pub fn new() -> Self {
-        let gg = AppState{direction: ListState::default()};
+
+        let state = AppState{direction: ListState::default()};
+
         color_eyre::install().expect("FALLO");
+
         let mut terminal = ratatui::init();
+
         let mut result = Self {
-            app_state: gg,
-            items: Vec::new(),
+            app_state: state,
+            items: scan_wad::list_wad(),
             tabs: Vec::new(),
             tabs_index: 0
         };
+
         result.run(&mut terminal);
+        
         ratatui::restore();
+        
         result
     }
 
@@ -50,7 +58,6 @@ impl App {
     fn draw_main(&mut self, frame: &mut Frame) {
         use Constraint::{Fill, Length, Min};
         
-        self.items = vec!["Item 1".to_string(), "Item 2".to_string(), "Item 3".to_string()];
         self.tabs = vec!["Tabs1".to_string(), "Tabs2".to_string(), "Tabs3".to_string()];
 
         //Draw the list section
@@ -89,7 +96,7 @@ impl App {
     fn selected(&mut self) {
 
         if let Some(select) = self.app_state.direction.selected() {
-            println!("{}", self.items[select]);
+            println!("{}", select);
         }
     }
     fn select_next_tabs(&mut self) {
