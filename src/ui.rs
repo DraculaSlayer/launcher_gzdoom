@@ -9,11 +9,12 @@ use ratatui::{text::Text,
 use std::io::Result;
 use ratatui::widgets::StatefulWidget;
 use ratatui::prelude::Widget;
-use crate::scan_wad;
+use crate::scan_directory;
 
 pub struct App {
     app_state: AppState,
-    items: Vec<String>,
+    items_wads: Vec<String>,
+    items_pk3: Vec<String>,
     tabs: Vec<String>,
     tabs_index: usize
 }
@@ -31,9 +32,12 @@ impl App {
 
         let mut terminal = ratatui::init();
 
+        let scan_dir = scan_directory::ScanDir::new();
+
         let mut result = Self {
             app_state: state,
-            items: scan_wad::list_wad(),
+            items_wads: scan_dir.list_wad(),
+            items_pk3:  scan_dir.list_pk3(),
             tabs: Vec::new(),
             tabs_index: 0
         };
@@ -60,8 +64,18 @@ impl App {
         
         self.tabs = vec!["Tabs1".to_string(), "Tabs2".to_string(), "Tabs3".to_string()];
 
-        //Draw the list section
-        self.draw_list(frame);
+        //Draw the list section select
+        if self.tabs_index == 0 {
+            self.draw_list(frame, self.items_wads.clone());
+        }
+        if self.tabs_index == 1 {
+            self.draw_list(frame, self.items_pk3.clone());
+        }
+        /*
+        if self.tabs_index == 1 {
+            self.draw_list()
+        }
+        */
 
         //Draw the tab section
         self.draw_tabs(frame);
@@ -75,8 +89,8 @@ impl App {
                 KeyCode::Up => self.select_next(),
                 KeyCode::Down => self.select_previous(),
                 KeyCode::Enter => self.selected(),
-                KeyCode::Char('h') => self.select_next_tabs(),
-                KeyCode::Char('j') => self.select_previous_tabs(),
+                KeyCode::Tab => self.select_next_tabs(),
+                //KeyCode::Char('j') => self.select_previous_tabs(),
                 // handle: other key events
                 _ => {}
             },
@@ -89,26 +103,40 @@ impl App {
     fn select_next(&mut self) {
         self.app_state.direction.select_next();
     }
-    
+
     fn select_previous(&mut self) {
         self.app_state.direction.select_previous();
     }
+
     fn selected(&mut self) {
 
         if let Some(select) = self.app_state.direction.selected() {
             println!("{}", select);
         }
     }
+
     fn select_next_tabs(&mut self) {
+
+        if self.tabs_index >= (self.tabs.len() - 1) {
+            self.tabs_index = 0;
+        }else {
+            self.tabs_index += 1;
+        }
+
+        /*
         if self.tabs_index < (self.tabs.len() -1) {
             self.tabs_index += 1;
         }
+        */
     }
+
+    /*
     fn select_previous_tabs(&mut self) {
         if self.tabs_index > 0 {
             self.tabs_index -= 1;
         }
     }
+    */
 
     fn draw_tabs(&mut self, frame: &mut Frame) {
         let index = self.tabs_index as usize;
@@ -124,8 +152,8 @@ impl App {
 
     }
 
-    fn draw_list(&mut self, frame: &mut Frame) {
-        let list = List::new(self.items.clone())
+    fn draw_list(&mut self, frame: &mut Frame, list: Vec<String>) {
+        let list = List::new(list)
             .block(Block::bordered().title("List"))
             .style(Style::new().white())
             .highlight_style(Style::new().italic())

@@ -1,2 +1,2 @@
 pub mod ui;
-pub mod scan_wad;
+pub mod scan_directory;
