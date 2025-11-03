@@ -28,7 +28,7 @@ impl App {
 
         let state = AppState{direction: ListState::default()};
 
-        color_eyre::install().expect("FALLO");
+        color_eyre::install().expect("FAILED");
 
         let mut terminal = ratatui::init();
 
@@ -38,7 +38,7 @@ impl App {
             app_state: state,
             items_wads: scan_dir.list_wad(),
             items_pk3:  scan_dir.list_pk3(),
-            tabs: Vec::new(),
+            tabs: vec!["Wads".to_string(), "Mods".to_string(), "Config".to_string()],
             tabs_index: 0
         };
 
@@ -62,8 +62,6 @@ impl App {
     fn draw_main(&mut self, frame: &mut Frame) {
         use Constraint::{Fill, Length, Min};
         
-        self.tabs = vec!["Tabs1".to_string(), "Tabs2".to_string(), "Tabs3".to_string()];
-
         //Draw the list section select
         if self.tabs_index == 0 {
             self.draw_list(frame, self.items_wads.clone());
@@ -123,20 +121,7 @@ impl App {
             self.tabs_index += 1;
         }
 
-        /*
-        if self.tabs_index < (self.tabs.len() -1) {
-            self.tabs_index += 1;
-        }
-        */
     }
-
-    /*
-    fn select_previous_tabs(&mut self) {
-        if self.tabs_index > 0 {
-            self.tabs_index -= 1;
-        }
-    }
-    */
 
     fn draw_tabs(&mut self, frame: &mut Frame) {
         let index = self.tabs_index as usize;
@@ -154,7 +139,7 @@ impl App {
 
     fn draw_list(&mut self, frame: &mut Frame, list: Vec<String>) {
         let list = List::new(list)
-            .block(Block::bordered().title("List"))
+            .block(Block::bordered())
             .style(Style::new().white())
             .highlight_style(Style::new().italic())
             .highlight_symbol(">>")
