@@ -37,35 +37,48 @@ impl ScanDir {
     }
 
     //Scan the directory
-    fn scan(&self, path: String) -> Vec<String> {
+    fn scan(&self, path: String, file_name: bool) -> Vec<String> {
 
         let paths = fs::read_dir(path).unwrap();
 
         let mut list: Vec<String> = Vec::new();
 
         for path in paths {
-
-            let element = path.unwrap()
-                .path()
-                .as_path()
-                .file_name()
-                .expect("FAILED")
-                .display()
-                .to_string();
-
-            list.push(element);
+            
+            match file_name {
+                false => {
+                    list.push(path.unwrap()
+                        .path()
+                        .display()
+                        .to_string());
+                },
+                true  => {
+                    list.push(path.unwrap()
+                        .path()
+                        .as_path()
+                        .file_name()
+                        .expect("FAILED")
+                        .display()
+                        .to_string());
+                },
+                _ => println!("FF"),
+            }
         }
         list
     }
 
     //Filtre pk3
-    pub fn list_pk3(&self) -> Vec<String> {
-        let list: Vec<String> = self.scan(self.config.directories.dir_pk3.clone());
+    pub fn list_pk3(&self, file_name: bool) -> Vec<String> {
+        let list: Vec<String> = self.scan(self.config.directories.dir_pk3.clone(), file_name);
         let mut list_pk3: Vec<String> = Vec::new();
 
+        let ext_pk3s: Vec<&str> = vec![".pk3", ".ipk3", ".Pk3"];
+
         for i in list {
-            if i.contains(".pk3") {
-                list_pk3.push(i);
+            for j in &ext_pk3s {
+                if i.contains(&*j) {
+                    list_pk3.push(i.clone());
+                }
             }
         }
 
@@ -73,8 +86,8 @@ impl ScanDir {
     }
 
     //Filtre WADs
-    pub fn list_wad(&self) -> Vec<String> {
-        let list: Vec<String> = self.scan(self.config.directories.dir_wads.clone());
+    pub fn list_wad(&self, file_name: bool) -> Vec<String> {
+        let list: Vec<String> = self.scan(self.config.directories.dir_wads.clone(), file_name);
         let mut list_wad: Vec<String> = Vec::new();
 
         let ext_wads: Vec<&str> = vec![".wad", ".iwad", ".WAD"];
